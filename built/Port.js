@@ -1,35 +1,30 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Port = void 0;
-var Cell_1 = require("./Cell");
-var _ = require("lodash");
-var Port = /** @class */ (function () {
-    function Port(key, value) {
+const Cell_1 = require("./Cell");
+const _ = require("lodash");
+class Port {
+    constructor(key, value) {
         this.key = key;
         this.value = value;
     }
-    Object.defineProperty(Port.prototype, "Key", {
-        get: function () {
-            return this.key;
-        },
-        enumerable: false,
-        configurable: true
-    });
-    Port.prototype.keyIn = function (pids) {
+    get Key() {
+        return this.key;
+    }
+    keyIn(pids) {
         return _.includes(pids, this.key);
-    };
-    Port.prototype.maxVal = function () {
-        return _.max(_.map(this.value, function (v) { return Number(v); }));
-    };
-    Port.prototype.valString = function () {
+    }
+    maxVal() {
+        return _.max(_.map(this.value, (v) => Number(v)));
+    }
+    valString() {
         return ',' + this.value.join() + ',';
-    };
-    Port.prototype.findConstants = function (sigsByConstantName, maxNum, constantCollector) {
-        var _this = this;
-        var constNameCollector = '';
-        var constNumCollector = [];
-        var portSigs = this.value;
-        portSigs.forEach(function (portSig, portSigIndex) {
+    }
+    findConstants(sigsByConstantName, maxNum, constantCollector) {
+        let constNameCollector = '';
+        let constNumCollector = [];
+        const portSigs = this.value;
+        portSigs.forEach((portSig, portSigIndex) => {
             // is constant?
             if (portSig === '0' || portSig === '1') {
                 maxNum += 1;
@@ -40,7 +35,7 @@ var Port = /** @class */ (function () {
                 // string of constants ended before end of p.value
             }
             else if (constNumCollector.length > 0) {
-                _this.assignConstant(constNameCollector, constNumCollector, portSigIndex, sigsByConstantName, constantCollector);
+                this.assignConstant(constNameCollector, constNumCollector, portSigIndex, sigsByConstantName, constantCollector);
                 // reset name and num collectors
                 constNameCollector = '';
                 constNumCollector = [];
@@ -50,12 +45,12 @@ var Port = /** @class */ (function () {
             this.assignConstant(constNameCollector, constNumCollector, portSigs.length, sigsByConstantName, constantCollector);
         }
         return maxNum;
-    };
-    Port.prototype.getGenericElkPort = function (index, templatePorts, dir) {
-        var nkey = this.parentNode.Key;
-        var type = this.parentNode.getTemplate()[1]['s:type'];
+    }
+    getGenericElkPort(index, templatePorts, dir) {
+        const nkey = this.parentNode.Key;
+        const type = this.parentNode.getTemplate()[1]['s:type'];
         if (index === 0) {
-            var ret = {
+            const ret = {
                 id: nkey + '.' + this.key,
                 width: 1,
                 height: 1,
@@ -85,8 +80,8 @@ var Port = /** @class */ (function () {
             return ret;
         }
         else {
-            var gap = Number(templatePorts[1][1]['s:y']) - Number(templatePorts[0][1]['s:y']);
-            var ret = {
+            const gap = Number(templatePorts[1][1]['s:y']) - Number(templatePorts[0][1]['s:y']);
+            const ret = {
                 id: nkey + '.' + this.key,
                 width: 1,
                 height: 1,
@@ -105,27 +100,25 @@ var Port = /** @class */ (function () {
             }
             return ret;
         }
-    };
-    Port.prototype.assignConstant = function (nameCollector, constants, currIndex, signalsByConstantName, constantCollector) {
-        var _this = this;
+    }
+    assignConstant(nameCollector, constants, currIndex, signalsByConstantName, constantCollector) {
         // we've been appending to nameCollector, so reverse to get const name
-        var constName = nameCollector.split('').reverse().join('');
+        const constName = nameCollector.split('').reverse().join('');
         // if the constant has already been used
         if (signalsByConstantName.hasOwnProperty(constName)) {
-            var constSigs = signalsByConstantName[constName];
+            const constSigs = signalsByConstantName[constName];
             // go back and fix signal values
-            var constLength_1 = constSigs.length;
-            constSigs.forEach(function (constSig, constIndex) {
+            const constLength = constSigs.length;
+            constSigs.forEach((constSig, constIndex) => {
                 // i is where in port_signals we need to update
-                var i = currIndex - constLength_1 + constIndex;
-                _this.value[i] = constSig;
+                const i = currIndex - constLength + constIndex;
+                this.value[i] = constSig;
             });
         }
         else {
             constantCollector.push(Cell_1.default.fromConstantInfo(constName, constants));
             signalsByConstantName[constName] = constants;
         }
-    };
-    return Port;
-}());
+    }
+}
 exports.Port = Port;

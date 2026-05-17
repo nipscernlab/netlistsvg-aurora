@@ -3,7 +3,10 @@
         "outDir": "./built",
         "allowJs": true,
         "lib": [ "es6", "dom" ],
-        "target": "es5"
+        "target": "es2015",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "types": []
     },
     "include": [
         "./lib/*",

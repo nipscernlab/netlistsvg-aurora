@@ -1,17 +1,10 @@
 "use strict";
-var __spreadArrays = (this && this.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.removeDummyEdges = void 0;
-var elkGraph_1 = require("./elkGraph");
-var Skin_1 = require("./Skin");
-var _ = require("lodash");
-var onml = require("onml");
+const elkGraph_1 = require("./elkGraph");
+const Skin_1 = require("./Skin");
+const _ = require("lodash");
+const onml = require("onml");
 var WireDirection;
 (function (WireDirection) {
     WireDirection[WireDirection["Up"] = 0] = "Up";
@@ -20,21 +13,21 @@ var WireDirection;
     WireDirection[WireDirection["Right"] = 3] = "Right";
 })(WireDirection || (WireDirection = {}));
 function drawModule(g, module) {
-    var nodes = module.nodes.map(function (n) {
-        var kchild = _.find(g.children, function (c) { return c.id === n.Key; });
+    const nodes = module.nodes.map((n) => {
+        const kchild = _.find(g.children, (c) => c.id === n.Key);
         return n.render(kchild);
     });
     removeDummyEdges(g);
-    var lines = _.flatMap(g.edges, function (e) {
-        var netId = elkGraph_1.ElkModel.wireNameLookup[e.id];
-        var numWires = netId.split(',').length - 2;
-        var lineStyle = 'stroke-width: ' + (numWires > 1 ? 2 : 1);
-        var netName = 'net_' + netId.slice(1, netId.length - 1) + ' width_' + numWires;
-        return _.flatMap(e.sections, function (s) {
-            var startPoint = s.startPoint;
+    let lines = _.flatMap(g.edges, (e) => {
+        const netId = elkGraph_1.ElkModel.wireNameLookup[e.id];
+        const numWires = netId.split(',').length - 2;
+        const lineStyle = 'stroke-width: ' + (numWires > 1 ? 2 : 1);
+        const netName = 'net_' + netId.slice(1, netId.length - 1) + ' width_' + numWires;
+        return _.flatMap(e.sections, (s) => {
+            let startPoint = s.startPoint;
             s.bendPoints = s.bendPoints || [];
-            var bends = s.bendPoints.map(function (b) {
-                var l = ['line', {
+            let bends = s.bendPoints.map((b) => {
+                const l = ['line', {
                         x1: startPoint.x,
                         x2: b.x,
                         y1: startPoint.y,
@@ -46,18 +39,16 @@ function drawModule(g, module) {
                 return l;
             });
             if (e.junctionPoints) {
-                var circles = e.junctionPoints.map(function (j) {
-                    return ['circle', {
-                            cx: j.x,
-                            cy: j.y,
-                            r: (numWires > 1 ? 3 : 2),
-                            style: 'fill:var(--vscode-foreground)',
-                            class: netName,
-                        }];
-                });
+                const circles = e.junctionPoints.map((j) => ['circle', {
+                        cx: j.x,
+                        cy: j.y,
+                        r: (numWires > 1 ? 3 : 2),
+                        style: 'fill:var(--vscode-foreground)',
+                        class: netName,
+                    }]);
                 bends = bends.concat(circles);
             }
-            var line = [['line', {
+            const line = [['line', {
                         x1: startPoint.x,
                         x2: s.endPoint.x,
                         y1: startPoint.y,
@@ -68,19 +59,19 @@ function drawModule(g, module) {
             return bends.concat(line);
         });
     });
-    var labels;
-    for (var index in g.edges) {
+    let labels;
+    for (const index in g.edges) {
         if (g.edges.hasOwnProperty(index)) {
-            var e = g.edges[index];
-            var netId = elkGraph_1.ElkModel.wireNameLookup[e.id];
-            var numWires = netId.split(',').length - 2;
-            var netName = 'net_' + netId.slice(1, netId.length - 1) +
+            const e = g.edges[index];
+            const netId = elkGraph_1.ElkModel.wireNameLookup[e.id];
+            const numWires = netId.split(',').length - 2;
+            const netName = 'net_' + netId.slice(1, netId.length - 1) +
                 ' width_' + numWires +
                 ' busLabel_' + numWires;
             if (e.labels !== undefined &&
                 e.labels[0] !== undefined &&
                 e.labels[0].text !== undefined) {
-                var label = [
+                const label = [
                     ['rect',
                         {
                             x: e.labels[0].x + 1,
@@ -88,7 +79,7 @@ function drawModule(g, module) {
                             width: (e.labels[0].text.length + 2) * 6 - 2,
                             height: 9,
                             class: netName,
-                            style: 'fill: white; stroke: none',
+                            style: 'fill: var(--vscode-editor-background); stroke: none',
                         },
                     ], ['text',
                         {
@@ -111,19 +102,19 @@ function drawModule(g, module) {
     if (labels !== undefined && labels.length > 0) {
         lines = lines.concat(labels);
     }
-    var svgAttrs = Skin_1.default.skin[1];
+    const svgAttrs = Skin_1.default.skin[1];
     svgAttrs.width = g.width.toString();
     svgAttrs.height = g.height.toString();
-    var styles = ['style', {}, ''];
+    const styles = ['style', {}, ''];
     onml.t(Skin_1.default.skin, {
-        enter: function (node) {
+        enter: (node) => {
             if (node.name === 'style') {
                 styles[2] += node.full[2];
             }
         },
     });
-    var elements = __spreadArrays([styles], nodes, lines);
-    var ret = __spreadArrays(['svg', svgAttrs], elements);
+    const elements = [styles, ...nodes, ...lines];
+    const ret = ['svg', svgAttrs, elements.map(e => onml.s(e)).join('')];
     return onml.s(ret);
 }
 exports.default = drawModule;
@@ -149,34 +140,35 @@ function which_dir(start, end) {
     throw new Error('unexpected direction');
 }
 function findBendNearDummy(net, dummyIsSource, dummyLoc) {
-    var candidates = net.map(function (edge) {
-        var bends = edge.sections[0].bendPoints || [null];
+    const candidates = net.map((edge) => {
+        const bends = edge.sections[0].bendPoints || [null];
         if (dummyIsSource) {
             return _.first(bends);
         }
         else {
             return _.last(bends);
         }
-    }).filter(function (p) { return p !== null; });
-    return _.minBy(candidates, function (pt) {
+    }).filter((p) => p !== null);
+    return _.minBy(candidates, (pt) => {
         return Math.abs(dummyLoc.x - pt.x) + Math.abs(dummyLoc.y - pt.y);
     });
 }
 function removeDummyEdges(g) {
     // go through each edge group for each dummy
-    var dummyNum = 0;
-    var _loop_1 = function () {
-        var dummyId = '$d_' + String(dummyNum);
+    let dummyNum = 0;
+    // loop until we can't find an edge group or we hit 10,000
+    while (dummyNum < 10000) {
+        const dummyId = '$d_' + String(dummyNum);
         // find all edges connected to this dummy
-        var edgeGroup = _.filter(g.edges, function (e) {
+        const edgeGroup = _.filter(g.edges, (e) => {
             return e.source === dummyId || e.target === dummyId;
         });
         if (edgeGroup.length === 0) {
-            return "break";
+            break;
         }
-        var dummyIsSource;
-        var dummyLoc = void 0;
-        var firstEdge = edgeGroup[0];
+        let dummyIsSource;
+        let dummyLoc;
+        const firstEdge = edgeGroup[0];
         if (firstEdge.source === dummyId) {
             dummyIsSource = true;
             dummyLoc = firstEdge.sections[0].startPoint;
@@ -185,11 +177,10 @@ function removeDummyEdges(g) {
             dummyIsSource = false;
             dummyLoc = firstEdge.sections[0].endPoint;
         }
-        var newEnd = findBendNearDummy(edgeGroup, dummyIsSource, dummyLoc);
-        for (var _i = 0, edgeGroup_1 = edgeGroup; _i < edgeGroup_1.length; _i++) {
-            var edge = edgeGroup_1[_i];
-            var e = edge;
-            var section = e.sections[0];
+        const newEnd = findBendNearDummy(edgeGroup, dummyIsSource, dummyLoc);
+        for (const edge of edgeGroup) {
+            const e = edge;
+            const section = e.sections[0];
             if (dummyIsSource) {
                 section.startPoint = newEnd;
                 if (section.bendPoints) {
@@ -204,8 +195,8 @@ function removeDummyEdges(g) {
             }
         }
         // delete junction point if necessary
-        var directions = new Set(_.flatMap(edgeGroup, function (edge) {
-            var section = edge.sections[0];
+        const directions = new Set(_.flatMap(edgeGroup, (edge) => {
+            const section = edge.sections[0];
             if (dummyIsSource) {
                 // get first bend or endPoint
                 if (section.bendPoints && section.bendPoints.length > 0) {
@@ -219,7 +210,7 @@ function removeDummyEdges(g) {
                 }
                 return section.startPoint;
             }
-        }).map(function (pt) {
+        }).map((pt) => {
             if (pt.x > newEnd.x) {
                 return WireDirection.Right;
             }
@@ -233,21 +224,15 @@ function removeDummyEdges(g) {
         }));
         if (directions.size < 3) {
             // remove junctions at newEnd
-            edgeGroup.forEach(function (edge) {
+            edgeGroup.forEach((edge) => {
                 if (edge.junctionPoints) {
-                    edge.junctionPoints = edge.junctionPoints.filter(function (junct) {
+                    edge.junctionPoints = edge.junctionPoints.filter((junct) => {
                         return !_.isEqual(junct, newEnd);
                     });
                 }
             });
         }
         dummyNum += 1;
-    };
-    // loop until we can't find an edge group or we hit 10,000
-    while (dummyNum < 10000) {
-        var state_1 = _loop_1();
-        if (state_1 === "break")
-            break;
     }
 }
 exports.removeDummyEdges = removeDummyEdges;
